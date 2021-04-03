@@ -1,0 +1,11 @@
+rootProject.name = 'Otaku'
+include ':@react-native-community_voice'
+project(':@react-native-community_voice').projectDir = new File(rootProject.projectDir, '../node_modules/@react-native-community/voice/android')
+apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesSettingsGradle(settings)
+include ':app'
+
+// Disable tests from react-native-navigation
+// when running on device these tests will automatically run
+// We don't need to run tests for a library
+startParameter.excludedTaskNames += ':react-native-navigation:testReactNative63DebugUnitTest'
+startParameter.excludedTaskNames += ':react-native-navigation:testReactNative63ReleaseUnitTest'
