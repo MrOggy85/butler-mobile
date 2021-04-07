@@ -107,6 +107,9 @@ const AddScreen: NavigationFunctionComponent<Props> = ({ componentId, id, sugges
         return;
       }
       setTitle(task.title);
+      setDescription(task.description);
+      setStartDate(new Date(task.startDate));
+      setDueDate(new Date(task.endDate));
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
