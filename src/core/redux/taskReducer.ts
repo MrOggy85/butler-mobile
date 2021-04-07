@@ -1,9 +1,22 @@
 import uuid from 'uuid';
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import localStorage from '../localStorage';
 import { Task } from './types';
+import { readJsonFile, writeJsonFile } from '../files/files';
 
 const NAMESPACE = 'task';
+
+async function readWriteToFile(updateTasks: (tasks: Task[]) => Task[]) {
+  const tasks = await readJsonFile<Task[]>('tasks.json');
+  if (!tasks) {
+    throw Error('Problem loading Tasks from Localstorage');
+  }
+
+  const updatedTasks = updateTasks(tasks);
+  const result = await writeJsonFile<Task[]>('tasks.json', updatedTasks);
+  if (!result) {
+    throw Error('Task not saved in Localstorage');
+  }
+}
 
 export const loadTask = createAsyncThunk<
 Task[],
@@ -11,10 +24,11 @@ void,
 {}
 >(
   `${NAMESPACE}/load`,
-  async (task, thunkApi) => {
-    const tasks = await localStorage.load<Task[]>('TASKS');
+  async (_, _thunkApi) => {
+    const tasks = await readJsonFile<Task[]>('tasks.json');
     if (!tasks) {
-      throw Error('Problem loading Tasks from Localstorage');
+      await writeJsonFile<Task[]>('tasks.json', []);
+      return [];
     }
     return tasks;
   },
@@ -28,22 +42,17 @@ TaskAdd,
 {}
 >(
   `${NAMESPACE}/add`,
-  async (task, thunkApi) => {
-    const tasks = await localStorage.load<Task[]>('TASKS');
-    if (!tasks) {
-      throw Error('Problem loading Tasks from Localstorage');
-    }
+  async (task, _thunkApi) => {
     const id = uuid.v4();
     const taskWithId = {
       ...task,
       id,
     };
 
-    tasks.push(taskWithId);
-    const result = await localStorage.save<Task[]>('TASKS', tasks);
-    if (!result) {
-      throw Error('Task not saved in Localstorage');
-    }
+    await readWriteToFile((tasks) => {
+      tasks.push(taskWithId);
+      return tasks;
+    });
     return taskWithId;
   },
 );
@@ -54,19 +63,14 @@ Task,
 {}
 >(
   `${NAMESPACE}/update`,
-  async (task, thunkApi) => {
-    const tasks = await localStorage.load<Task[]>('TASKS');
-    if (!tasks) {
-      throw Error('Problem loading Tasks from Localstorage');
-    }
+  async (task, _thunkApi) => {
+    let newTasks: Task[] = [];
 
-    const newTasks = tasks.filter(x => x.id !== task.id);
-
-    newTasks.push(task);
-    const result = await localStorage.save<Task[]>('TASKS', newTasks);
-    if (!result) {
-      throw Error('Task not saved in Localstorage');
-    }
+    await readWriteToFile((tasks) => {
+      newTasks = tasks.filter(x => x.id !== task.id);
+      newTasks.push(task);
+      return tasks;
+    });
     return newTasks;
   },
 );
@@ -77,18 +81,13 @@ Task,
 {}
 >(
   `${NAMESPACE}/remove`,
-  async (task, thunkApi) => {
-    const tasks = await localStorage.load<Task[]>('TASKS');
-    if (!tasks) {
-      throw Error('Problem loading Tasks from Localstorage');
-    }
+  async (task, _thunkApi) => {
+    let newTasks: Task[] = [];
 
-    const newTasks = tasks.filter(x => x.id !== task.id);
-
-    const result = await localStorage.save<Task[]>('TASKS', newTasks);
-    if (!result) {
-      throw Error('Task not saved in Localstorage');
-    }
+    await readWriteToFile((tasks) => {
+      newTasks = tasks.filter(x => x.id !== task.id);
+      return newTasks;
+    });
     return newTasks;
   },
 );
