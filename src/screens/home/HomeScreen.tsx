@@ -1,5 +1,5 @@
 import React, { ComponentProps, FunctionComponent, useCallback, useEffect, useState } from 'react';
-import { View, Text, Button, StyleSheet, Pressable, SafeAreaView, ScrollView, ViewStyle } from 'react-native';
+import { View, Text, Button, StyleSheet, Pressable, SafeAreaView, ScrollView, ViewStyle, RefreshControl, FlatList, ActivityIndicator } from 'react-native';
 import { Navigation, NavigationComponentProps, NavigationFunctionComponent } from 'react-native-navigation';
 import { events } from '../../../mockData/data';
 import { DateTime } from 'luxon';
@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: '100%',
     paddingLeft: 10,
-    backgroundColor: '#DDD',
+    // backgroundColor: '#DDD',
   },
   nothingListItem: {
     flexDirection: 'row',
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     height: 50,
     width: '100%',
-
+    justifyContent: 'space-evenly',
   },
   bottomButton: {
     flex: 1,
@@ -85,6 +85,23 @@ const styles = StyleSheet.create({
     height: '100%',
     flexDirection: 'row',
     backgroundColor: 'yellow',
+  },
+  loadMoreDateWrapper: {
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+    height: 100,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadMoreDateText: {
+    fontSize: 16,
+  },
+  scrollView: {
+    backgroundColor: '#FFF',
+  },
+  activityIndicatorHide: {
+    opacity: 0,
   },
 });
 
@@ -115,7 +132,6 @@ type ListItemProps = {
 }
 
 const ListItem: FunctionComponent<ListItemProps> = ({ item, backgroundColor, onPress }) => {
-  // const backgroundColor = isActive ? 'yellow' : '#CCC';
   const [isEdit, setIsEdit] = useState(false);
 
   const onEditPress = () => {
@@ -181,12 +197,13 @@ const ListItem: FunctionComponent<ListItemProps> = ({ item, backgroundColor, onP
 
 type HeaderListItemProps = {
   text: string;
+  backgroundColor?: ViewStyle['backgroundColor'];
 }
 
-const HeaderListItem: FunctionComponent<HeaderListItemProps> = ({ text }) => {
+const HeaderListItem: FunctionComponent<HeaderListItemProps> = ({ text, backgroundColor }) => {
   // const backgroundColor = isActive ? 'yellow' : '#CCC';
   return (
-    <View style={styles.headerListItem}>
+    <View style={[styles.headerListItem, { backgroundColor }]}>
       <Text>
         {text}
       </Text>
@@ -231,6 +248,10 @@ const HomeScreen: NavigationFunctionComponent<Props> = ({ componentId }: Props) 
   const tasks = useSelector(state => state.task.tasks);
   const [taskActive, setTaskActive] = useState(false);
   const [eventActive, setEventActive] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [daysInView, setDaysInView] = useState(20);
+  const [currentDayIndex, setCurrentDayIndex] = useState(0);
+  const [isBottomRefreshing, setIsBottomRefreshing] = useState(false);
 
   useEffect(() => {
     dispatch(loadTask());
@@ -244,14 +265,20 @@ const HomeScreen: NavigationFunctionComponent<Props> = ({ componentId }: Props) 
     setEventActive(!eventActive);
   };
 
-  const listItems = []
+  const listItems = [];
   const now = DateTime.now();
-  for (let index = 0; index < 5; index++) {
-    const date = now.plus({ day: index });
+  for (let index = 0; index < daysInView; index++) {
+    const dayPlusMinus = index + currentDayIndex;
+    const date = dayPlusMinus >= 0
+      ? now.plus({ day: dayPlusMinus })
+      : now.plus({ day: dayPlusMinus });
+
+    const isToday = dayPlusMinus === 0;
     const header = (
       <HeaderListItem
         key={`header-${index}`}
-        text={date.toFormat('yyyy-MM-dd')}
+        text={`${date.toFormat('yyyy-MM-dd')}${isToday ? ' - Today' : ''}`}
+        backgroundColor={isToday ? COLOR_ORANGE : '#DDD'}
       />
     );
     listItems.push(header);
@@ -302,11 +329,57 @@ const HomeScreen: NavigationFunctionComponent<Props> = ({ componentId }: Props) 
     }
   }
 
+  const onRefresh = () => {
+    setCurrentDayIndex(currentDayIndex - 5);
+    setDaysInView(daysInView + 5);
+  };
+
+  const onBottomPull = () => {
+    setDaysInView(daysInView + 5);
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.root}>
         <View style={styles.mainContent}>
-          <ScrollView>
+          <View style={styles.loadMoreDateWrapper}>
+            <Text style={styles.loadMoreDateText}>
+              {isBottomRefreshing ? 'Release to load more dates' : 'Pull to load more dates'}
+            </Text>
+            <ActivityIndicator style={isBottomRefreshing ? undefined : styles.activityIndicatorHide} />
+          </View>
+          <ScrollView
+            contentContainerStyle={styles.scrollView}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={onRefresh}
+              />
+            }
+            onScroll={(e) => {
+              const scrollViewHeight = e.nativeEvent.contentSize.height - e.nativeEvent.layoutMeasurement.height;
+              const currentOffset = e.nativeEvent.contentOffset.y;
+              const threashhold = 120;
+              if (currentOffset > scrollViewHeight + threashhold) {
+                if (!isBottomRefreshing) {
+                  setIsBottomRefreshing(true);
+                }
+              } else {
+                if (isBottomRefreshing) {
+                  setIsBottomRefreshing(false);
+                }
+              }
+            }}
+            scrollEventThrottle={32}
+            onScrollEndDrag={(e) => {
+              const scrollViewHeight = e.nativeEvent.contentSize.height - e.nativeEvent.layoutMeasurement.height;
+              const currentOffset = e.nativeEvent.contentOffset.y;
+              const threashhold = 120;
+              if (currentOffset > scrollViewHeight + threashhold) {
+                onBottomPull();
+              }
+            }}
+          >
             {listItems}
           </ScrollView>
 
@@ -332,6 +405,12 @@ const HomeScreen: NavigationFunctionComponent<Props> = ({ componentId }: Props) 
           />
           <BottomButton
             text="Tags"
+            isActive={false}
+            activeBackgroundColor={COLOR_ORANGE}
+            onPress={() => {}}
+          />
+          <BottomButton
+            text="Profile"
             isActive={false}
             activeBackgroundColor={COLOR_ORANGE}
             onPress={() => {}}
