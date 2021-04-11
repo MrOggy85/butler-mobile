@@ -38,6 +38,12 @@ export function showModal<T>({ screen, title, passProps }: Props<T>): void {
                     text: 'Back',
                   },
                 ],
+                rightButtons: [
+                  {
+                    id: 'MODAL_TOPBAR_RIGHT_BUTTON',
+                    text: 'Switch',
+                  },
+                ],
                 title: {
                   text: title,
                 },

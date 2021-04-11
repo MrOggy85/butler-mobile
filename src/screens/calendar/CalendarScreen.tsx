@@ -1,7 +1,14 @@
 import { DateTime } from 'luxon';
-import React, { FunctionComponent } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
-import { events } from '../../../mockData/data';
+import React, { ComponentProps, FunctionComponent, useState } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, Pressable } from 'react-native';
+import { NavigationComponentProps } from 'react-native-navigation';
+import { useSelector } from 'react-redux';
+import { showModal } from '../../core/navigation/showModal';
+import { RootState } from '../../core/redux/store';
+import AddScreen from '../add/AddModal';
+
+type Event = RootState['event']['events'][0];
+type AddScreenProps = Omit<ComponentProps<typeof AddScreen>, keyof NavigationComponentProps>
 
 type OwnProps = {};
 type Props = OwnProps;
@@ -38,18 +45,46 @@ const styles = StyleSheet.create({
   eventItemText: {
     fontSize: 11,
   },
+  zoomedCalendarCellWrapper: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(52, 52, 52, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  zoomedCalendarCellContent: {
+    width: '80%',
+    maxHeight: '80%',
+    backgroundColor: '#FFF',
+  },
+  zoomedHourWrapper: {
+    flex: 1,
+  },
+  zoomedHour: {
+    minHeight: 10,
+    borderBottomWidth: 0.5,
+  },
+  buttonAdd: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 50,
+    backgroundColor: 'skyblue',
+  },
 });
 
 const weekDays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+const hours = Array.from(Array(24));
 
 type DateCell = {
   month: number;
   day: number;
   key: string;
-  events: typeof events;
+  events: Event[];
 }
 
-function getEventsOfTheDay(date: DateTime) {
+function getEventsOfTheDay(date: DateTime, events: Event[]) {
   const eventsOfTheDay = events.filter(x => {
     const eventDate = DateTime.fromMillis(x.startDate);
     return date.hasSame(eventDate, 'day');
@@ -59,6 +94,8 @@ function getEventsOfTheDay(date: DateTime) {
 
 const CalendarScreen: FunctionComponent<Props> = ({}: Props) => {
   const listItems: DateCell[][] = [];
+  const events = useSelector(state => state.event.events);
+  const [zoomedDate, setZoomedDate] = useState<DateTime | undefined>(undefined);
 
   const now = DateTime.now();
   const firstDayOfCurrentMonth = DateTime.fromObject({ year: now.year, month: now.month, day: 1 });
@@ -71,7 +108,7 @@ const CalendarScreen: FunctionComponent<Props> = ({}: Props) => {
     for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
       if (rowIndex === 0) {
         if (dayIndex >= firstDayOfCurrentMonth.weekday - 1) {
-          const eventsOfTheDay = getEventsOfTheDay(currentDate);
+          const eventsOfTheDay = getEventsOfTheDay(currentDate, events);
           row.push({
             key: `${rowIndex}-${currentDate.day}`,
             month: firstDayOfCurrentMonth.month,
@@ -86,7 +123,7 @@ const CalendarScreen: FunctionComponent<Props> = ({}: Props) => {
             month: currentDate.month - 1,
             day: dd,
           });
-          const eventsOfTheDay = getEventsOfTheDay(date);
+          const eventsOfTheDay = getEventsOfTheDay(date, events);
           row.push({
             key: `${rowIndex}-${dd}`,
             month: firstDayOfCurrentMonth.minus({ month: 1}).month,
@@ -95,7 +132,7 @@ const CalendarScreen: FunctionComponent<Props> = ({}: Props) => {
           });
         }
       } else {
-        const eventsOfTheDay = getEventsOfTheDay(currentDate);
+        const eventsOfTheDay = getEventsOfTheDay(currentDate, events);
         row.push({
           key: `${rowIndex}-${currentDate.day}`,
           month: currentDate.month,
@@ -142,9 +179,12 @@ const CalendarScreen: FunctionComponent<Props> = ({}: Props) => {
                       ? 'bold'
                       : 'normal';
                     return (
-                      <View
+                      <Pressable
                         key={y.key}
                         style={[styles.calendarCell, { backgroundColor }]}
+                        onPress={() => {
+                          setZoomedDate(DateTime.fromObject({ month: y.month, day: y.day }));
+                        }}
                       >
                         <Text style={{ fontWeight }}>
                           {y.day}
@@ -166,7 +206,7 @@ const CalendarScreen: FunctionComponent<Props> = ({}: Props) => {
                             ))}
                           </View>
                         )}
-                      </View>
+                      </Pressable>
                     );
                   })}
                 </View>
@@ -174,6 +214,66 @@ const CalendarScreen: FunctionComponent<Props> = ({}: Props) => {
             })}
         </View>
       </ScrollView>
+      {!!zoomedDate && (
+        <Pressable
+          style={styles.zoomedCalendarCellWrapper}
+          onPress={() => {
+            setZoomedDate(undefined);
+          }}
+        >
+          <View
+            style={styles.zoomedCalendarCellContent}
+            onStartShouldSetResponder={(e) => {
+              e.stopPropagation();
+              return false;
+            }}
+          >
+            <Text>
+              {zoomedDate.toFormat('yyyy-MM-dd')}
+            </Text>
+            <ScrollView>
+              <View style={styles.zoomedHourWrapper}>
+                {hours.map((x, i) => (
+                  <View style={styles.zoomedHour} key={i}>
+                    <Text>{i + 1}</Text>
+                    {events
+                      .filter(x =>
+                        DateTime.fromMillis(x.startDate).day === zoomedDate.day &&
+                        DateTime.fromMillis(x.startDate).hour === i + 1)
+                      .map(x => (
+                        <View
+                          key={x.id}
+                          style={styles.eventItemWrapper}
+                        >
+                          <Text>{x.title}</Text>
+                        </View>
+                      ))
+                    }
+                    <Pressable onPress={() => {
+                      const suggestedStartDate = zoomedDate.set({ hour: i + 1}).toJSDate();
+                      showModal<AddScreenProps>({
+                        screen: 'ADD',
+                        title: 'Add',
+                        passProps: {
+                          suggestedStartDate,
+                          suggestAddType: 'EVENT',
+                        },
+                      });
+                    }}>
+                      <View style={styles.buttonAdd}>
+                        <Text>
+                          Add
+                        </Text>
+                      </View>
+                    </Pressable>
+                  </View>
+                ))}
+              </View>
+            </ScrollView>
+          </View>
+        </Pressable>
+      )}
+
     </SafeAreaView>
   );
 };

@@ -1,13 +1,13 @@
-import React, { ComponentProps, FunctionComponent, useCallback, useEffect, useState } from 'react';
-import { View, Text, Button, StyleSheet, Pressable, SafeAreaView, ScrollView, ViewStyle, RefreshControl, FlatList, ActivityIndicator } from 'react-native';
-import { Navigation, NavigationComponentProps, NavigationFunctionComponent } from 'react-native-navigation';
-import { events } from '../../../mockData/data';
+import React, { ComponentProps, FunctionComponent, useEffect, useState } from 'react';
+import { View, Text, StyleSheet, Pressable, SafeAreaView, ScrollView, ViewStyle, RefreshControl, ActivityIndicator } from 'react-native';
+import { NavigationComponentProps, NavigationFunctionComponent } from 'react-native-navigation';
 import { DateTime } from 'luxon';
 import { showModal } from '../../core/navigation/showModal';
 import { useDispatch, useSelector } from 'react-redux';
 import { loadTask } from '../../core/redux/taskReducer';
 import AddScreen from '../add/AddModal';
 import { Event, Task } from '../../core/redux/types';
+import { loadEvents } from '../../core/redux/eventReducer';
 
 type OwnProps = {};
 type Props = OwnProps & NavigationComponentProps;
@@ -137,7 +137,7 @@ const ListItem: FunctionComponent<ListItemProps> = ({ item, backgroundColor, onP
   const onEditPress = () => {
     showModal<AddScreenProps>({
       screen: 'ADD',
-      title: 'Add',
+      title: '',
       passProps: {
         id: item.id,
       },
@@ -220,7 +220,7 @@ const NothingListItem: FunctionComponent<NothingListItemProps> = ({ text, date }
   const onPress = () => {
     showModal<AddScreenProps>({
       screen: 'ADD',
-      title: 'Add',
+      title: '',
       passProps: {
         suggestedStartDate: date,
       },
@@ -246,6 +246,7 @@ const NothingListItem: FunctionComponent<NothingListItemProps> = ({ text, date }
 const HomeScreen: NavigationFunctionComponent<Props> = ({ componentId }: Props) => {
   const dispatch = useDispatch();
   const tasks = useSelector(state => state.task.tasks);
+  const events = useSelector(state => state.event.events);
   const [taskActive, setTaskActive] = useState(false);
   const [eventActive, setEventActive] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -255,6 +256,7 @@ const HomeScreen: NavigationFunctionComponent<Props> = ({ componentId }: Props) 
 
   useEffect(() => {
     dispatch(loadTask());
+    dispatch(loadEvents());
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

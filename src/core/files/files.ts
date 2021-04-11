@@ -1,6 +1,6 @@
 import RNFS from 'react-native-fs';
 
-type Filename = 'tasks.json'
+type Filename = 'tasks.json' | 'events.json';
 
 export async function readJsonFile<T>(filename: Filename): Promise<T | null> {
   const path = `${RNFS.DocumentDirectoryPath}/${filename}`;

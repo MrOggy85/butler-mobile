@@ -20,6 +20,7 @@ Navigation.events().registerAppLaunchedListener(() => {
          children: [
            {
              component: {
+               id: MAIN.id,
                name: MAIN.name,
                options: {
                  topBar: {

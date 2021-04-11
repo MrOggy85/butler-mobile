@@ -1,6 +1,6 @@
 import React, { FunctionComponent, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, SafeAreaView } from 'react-native';
-import { Navigation, NavigationComponentProps, NavigationFunctionComponent } from 'react-native-navigation';
+import { Navigation, NavigationComponentProps, NavigationFunctionComponent, OptionsTopBarButton } from 'react-native-navigation';
 import CheckBox from '@react-native-community/checkbox';
 import DatePicker from 'react-native-date-picker';
 import Input from '../../components/Input';
@@ -9,6 +9,9 @@ import Button from '../../components/Button';
 import { useDispatch, useSelector } from 'react-redux';
 import { addTask, removeTask, updateTask } from '../../core/redux/taskReducer';
 import { Task } from '../../core/redux/types';
+import screens from '../../core/navigation/screens';
+import { DateTime } from 'luxon';
+import { addEvent } from '../../core/redux/eventReducer';
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -83,22 +86,66 @@ const DateInput: FunctionComponent<DateInputProps> = ({ label, date, isChecked, 
   );
 };
 
+type AddType = 'TASK' | 'EVENT'
+
 type OwnProps = {
   id?: Task['id'];
   suggestedStartDate?: Date;
+  suggestAddType?: AddType;
 };
 type Props = OwnProps & NavigationComponentProps;
 
-const AddScreen: NavigationFunctionComponent<Props> = ({ componentId, id, suggestedStartDate }: Props) => {
+function setTopBarTitle(title: string) {
+  Navigation.mergeOptions(screens.ADD.id, {
+    topBar: {
+      title: {
+        text: title,
+      },
+    },
+  });
+}
+
+type Hej = {
+  addType: AddType;
+  setAddType: React.Dispatch<React.SetStateAction<AddType>>;
+  hide?: boolean;
+}
+
+function setTopBarRightButton({ addType, setAddType, hide }: Hej) {
+  const rightButtons: OptionsTopBarButton[] | undefined = !hide ? [
+    {
+      id: 'MODAL_TOPBAR_RIGHT_BUTTON',
+      text: 'Switch',
+    },
+  ] : [];
+
+  Navigation.mergeOptions(screens.ADD.id, {
+    topBar: {
+      rightButtons,
+    },
+  });
+
+  return Navigation.events().registerNavigationButtonPressedListener((event) => {
+    if (event.buttonId !== 'MODAL_TOPBAR_RIGHT_BUTTON') {
+      return;
+    }
+    setAddType(addType === 'TASK' ? 'EVENT' : 'TASK');
+  });
+}
+
+const AddScreen: NavigationFunctionComponent<Props> = ({ componentId, id, suggestedStartDate, suggestAddType }: Props) => {
   const dispatch = useDispatch();
   const tasks = useSelector(state => state.task.tasks);
 
+  const initStartDate = DateTime.fromJSDate(suggestedStartDate || new Date());
+
+  const [addType, setAddType] = useState(suggestAddType || 'TASK');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [hasStartDate, setHasStartDate] = useState(false);
-  const [startDate, setStartDate] = useState(suggestedStartDate || new Date());
+  const [startDate, setStartDate] = useState(initStartDate.toJSDate());
   const [hasDueDate, setHasDueDate] = useState(false);
-  const [dueDate, setDueDate] = useState(new Date());
+  const [dueDate, setDueDate] = useState(initStartDate.plus({ hour: 1}).toJSDate());
 
   useEffect(() => {
     if (id) {
@@ -114,13 +161,32 @@ const AddScreen: NavigationFunctionComponent<Props> = ({ componentId, id, sugges
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    const addEdit = id ? 'Edit' : 'Add'
+    setTopBarTitle(addType === 'TASK' ? `${addEdit} Task` : `${addEdit} Event`);
+    const subscription = setTopBarRightButton({ addType, setAddType, hide: !!id });
+    return () => {
+      subscription.remove();
+    };
+  }, [id, addType]);
+
   const onAdd = () => {
-    dispatch(addTask({
-      title,
-      description,
-      startDate: startDate.getTime(),
-      endDate: dueDate.getTime(),
-    }));
+    if (addType === 'TASK') {
+      dispatch(addTask({
+        title,
+        description,
+        startDate: startDate.getTime(),
+        endDate: dueDate.getTime(),
+      }));
+    } else {
+      dispatch(addEvent({
+        title,
+        description,
+        startDate: startDate.getTime(),
+        endDate: dueDate.getTime(),
+      }));
+    }
+
     Navigation.dismissModal(componentId);
   };
 
@@ -154,6 +220,8 @@ const AddScreen: NavigationFunctionComponent<Props> = ({ componentId, id, sugges
     Navigation.dismissModal(componentId);
   };
 
+  const duration = DateTime.fromJSDate(dueDate).diff(DateTime.fromJSDate(startDate)).toFormat(`d 'days' h 'h' m 'min'`);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.root}>
@@ -184,8 +252,13 @@ const AddScreen: NavigationFunctionComponent<Props> = ({ componentId, id, sugges
             Visible before Start Date
           </Text>
         </View>
+        <View>
+          <Text>
+            {`Duration: ${duration}`}
+          </Text>
+        </View>
         <DateInput
-          label="Due Date"
+          label={addType === 'TASK' ? 'Due Date' : 'End Date'}
           date={dueDate}
           setDate={setDueDate}
           isChecked={hasDueDate}
@@ -194,6 +267,7 @@ const AddScreen: NavigationFunctionComponent<Props> = ({ componentId, id, sugges
         <Button
           text={id ? 'Change' : 'Add'}
           onPress={id ? onChange : onAdd}
+          disabled={!title}
         />
         {id && (
           <Button
@@ -204,6 +278,6 @@ const AddScreen: NavigationFunctionComponent<Props> = ({ componentId, id, sugges
       </View>
     </SafeAreaView>
   );
-}
+};
 
 export default AddScreen;
