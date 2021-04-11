@@ -238,6 +238,8 @@ PODS:
   - React-jsinspector (0.63.3)
   - react-native-date-picker (3.2.10):
     - React-Core
+  - react-native-pager-view (5.1.3):
+    - React-Core
   - react-native-voice (1.1.9):
     - React
   - React-RCTActionSheet (0.63.3):
@@ -359,6 +361,7 @@ DEPENDENCIES:
   - React-jsiexecutor (from `../node_modules/react-native/ReactCommon/jsiexecutor`)
   - React-jsinspector (from `../node_modules/react-native/ReactCommon/jsinspector`)
   - react-native-date-picker (from `../node_modules/react-native-date-picker`)
+  - react-native-pager-view (from `../node_modules/react-native-pager-view`)
   - "react-native-voice (from `../node_modules/@react-native-community/voice`)"
   - React-RCTActionSheet (from `../node_modules/react-native/Libraries/ActionSheetIOS`)
   - React-RCTAnimation (from `../node_modules/react-native/Libraries/NativeAnimation`)
@@ -425,6 +428,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/jsinspector"
   react-native-date-picker:
     :path: "../node_modules/react-native-date-picker"
+  react-native-pager-view:
+    :path: "../node_modules/react-native-pager-view"
   react-native-voice:
     :path: "../node_modules/@react-native-community/voice"
   React-RCTActionSheet:
@@ -488,6 +493,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: b56c03e61c0dd5f5801255f2160a815f4a53d451
   React-jsinspector: 8e68ffbfe23880d3ee9bafa8be2777f60b25cbe2
   react-native-date-picker: 242eec7af56cea5fb2706d5db5d3837060b3884b
+  react-native-pager-view: 08c5414c85f5e3bb35e57f6e72a81a567b9ee749
   react-native-voice: eb6b7c7f752310f72a6f4d64c2fba6ee724d6604
   React-RCTActionSheet: 53ea72699698b0b47a6421cb1c8b4ab215a774aa
   React-RCTAnimation: 1befece0b5183c22ae01b966f5583f42e69a83c2

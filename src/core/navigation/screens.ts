@@ -1,4 +1,8 @@
 const screens = {
+  MAIN: {
+    id: 'MAIN',
+    name: 'com.MainScreen',
+  },
   HOME: {
     id: 'HOME',
     name: 'com.HomeScreen',
@@ -6,6 +10,10 @@ const screens = {
   ADD: {
     id: 'ADD',
     name: 'com.AddScreen',
+  },
+  CALENDAR: {
+    id: 'CALENDAR',
+    name: 'com.CalendarScreen',
   },
 };
 

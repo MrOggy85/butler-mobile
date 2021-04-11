@@ -14,7 +14,31 @@ export const tasks = [
 export const events = [
   {
     id: 1,
-    title: 'my Birthday',
+    title: 'Rental Car Nitori',
+    description: '',
+    startDate: new Date().getTime(),
+    endDate: '',
+    reminders: [],
+  },
+  {
+    id: 2,
+    title: 'Date Night',
+    description: '',
+    startDate: new Date().getTime(),
+    endDate: '',
+    reminders: [],
+  },
+  {
+    id: 3,
+    title: 'Imigration Office',
+    description: '',
+    startDate: new Date().getTime(),
+    endDate: '',
+    reminders: [],
+  },
+  {
+    id: 4,
+    title: 'Ice Skating Tournament',
     description: '',
     startDate: new Date().getTime(),
     endDate: '',
