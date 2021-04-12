@@ -319,6 +319,10 @@ PODS:
     - React-Core
   - RNFS (2.17.0):
     - React
+  - RNGestureHandler (1.10.3):
+    - React-Core
+  - RNReanimated (1.13.2):
+    - React-Core
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
     - Yoga (~> 1.14)
@@ -378,6 +382,8 @@ DEPENDENCIES:
   - "RNCCheckbox (from `../node_modules/@react-native-community/checkbox`)"
   - "RNCPicker (from `../node_modules/@react-native-community/picker`)"
   - RNFS (from `../node_modules/react-native-fs`)
+  - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
+  - RNReanimated (from `../node_modules/react-native-reanimated`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -462,6 +468,10 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-community/picker"
   RNFS:
     :path: "../node_modules/react-native-fs"
+  RNGestureHandler:
+    :path: "../node_modules/react-native-gesture-handler"
+  RNReanimated:
+    :path: "../node_modules/react-native-reanimated"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -510,6 +520,8 @@ SPEC CHECKSUMS:
   RNCCheckbox: 5313bf49c2977c1c8f7135434fc01dc80f86bf0b
   RNCPicker: 914b557e20b3b8317b084aca9ff4b4edb95f61e4
   RNFS: 93d5b5535eb39d98e6b19009faa8fe717f7ea45d
+  RNGestureHandler: a479ebd5ed4221a810967000735517df0d2db211
+  RNReanimated: e03f7425cb7a38dcf1b644d680d1bfc91c3337ad
   Yoga: 7d13633d129fd179e01b8953d38d47be90db185a
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
