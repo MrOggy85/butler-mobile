@@ -39,6 +39,7 @@ module.exports = {
       noSortAlphabetically: true,
     }],
     'react/jsx-no-bind': 0,
+    'react/jsx-one-expression-per-line': 0,
     'react/forbid-component-props': [2, {
       forbid: [],
     }],

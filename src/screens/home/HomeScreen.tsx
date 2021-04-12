@@ -1,24 +1,20 @@
 import React, { ComponentProps, FunctionComponent, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, SafeAreaView, ScrollView, ViewStyle, RefreshControl, ActivityIndicator } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
 import { NavigationComponentProps, NavigationFunctionComponent } from 'react-native-navigation';
 import { DateTime } from 'luxon';
 import { showModal } from '../../core/navigation/showModal';
-import { useDispatch, useSelector } from 'react-redux';
 import { loadTask } from '../../core/redux/taskReducer';
-import AddScreen from '../add/AddModal';
-import { Event, Task } from '../../core/redux/types';
+import type { Event, Task } from '../../core/redux/types';
 import { loadEvents } from '../../core/redux/eventReducer';
+import ListItem from '../../components/ListItem';
+import AddScreen from '../add/AddModal';
+import { accent } from '../../core/colors';
 
 type OwnProps = {};
 type Props = OwnProps & NavigationComponentProps;
 
 type AddScreenProps = Omit<ComponentProps<typeof AddScreen>, keyof NavigationComponentProps>
-
-const COLOR_TASK = '#99DEF0';
-const COLOR_EVENTS = '#ffc425';
-const COLOR_GREEN = '#00b159';
-const COLOR_RED = '#d11141';
-const COLOR_ORANGE = '#f37735';
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -34,20 +30,11 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
   },
-  listItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingLeft: 10,
-    height: 50,
-    width: '100%',
-  },
   headerListItem: {
     height: 20,
     justifyContent: 'center',
     width: '100%',
     paddingLeft: 10,
-    // backgroundColor: '#DDD',
   },
   nothingListItem: {
     flexDirection: 'row',
@@ -78,13 +65,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: 50,
     backgroundColor: 'skyblue',
-  },
-  editRow: {
-    // flex: 1,
-    // width: '100%',
-    height: '100%',
-    flexDirection: 'row',
-    backgroundColor: 'yellow',
   },
   loadMoreDateWrapper: {
     position: 'absolute',
@@ -125,16 +105,23 @@ const BottomButton: FunctionComponent<BottonButtonProps> = ({ text, isActive, ac
   );
 };
 
-type ListItemProps = {
+type RenderListItemParams = {
+  key: string;
   item: Task | Event;
   backgroundColor: ViewStyle['backgroundColor'];
-  onPress: ComponentProps<typeof Pressable>['onPress'];
 }
 
-const ListItem: FunctionComponent<ListItemProps> = ({ item, backgroundColor, onPress }) => {
-  const [isEdit, setIsEdit] = useState(false);
-
+function renderListItem({ key, item, backgroundColor }: RenderListItemParams) {
   const onEditPress = () => {
+    showModal<AddScreenProps>({
+      screen: 'ADD',
+      title: '',
+      passProps: {
+        id: item.id,
+      },
+    });
+  };
+  const onCompletePress = () => {
     showModal<AddScreenProps>({
       screen: 'ADD',
       title: '',
@@ -145,55 +132,16 @@ const ListItem: FunctionComponent<ListItemProps> = ({ item, backgroundColor, onP
   };
 
   return (
-    <View style={[styles.listItem, { backgroundColor }]}>
-      <Text>
-        {item.title}
-      </Text>
-      {isEdit ? (
-        <View style={styles.editRow}>
-          <Pressable onPress={onEditPress}>
-            <View style={styles.buttonAdd}>
-              <Text>
-                Edit
-              </Text>
-            </View>
-          </Pressable>
-          <Pressable onPress={onPress}>
-            <View style={styles.buttonAdd}>
-              <Text>
-                Complete
-              </Text>
-            </View>
-          </Pressable>
-          <Pressable
-            onPress={() => {
-              setIsEdit(false);
-            }}
-          >
-            <View style={styles.buttonAdd}>
-              <Text>
-                Close
-              </Text>
-            </View>
-          </Pressable>
-        </View>
-      ): (
-        <Pressable
-          onPress={() => {
-            setIsEdit(true);
-          }}
-        >
-          <View style={styles.buttonAdd}>
-            <Text>
-              Menu
-            </Text>
-          </View>
-        </Pressable>
-      )}
-
-    </View>
+    <ListItem
+      key={key}
+      title={item.title}
+      subtitle={item.description}
+      backgroundColor={backgroundColor}
+      onEditPress={onEditPress}
+      onCompletePress={onCompletePress}
+    />
   );
-};
+}
 
 type HeaderListItemProps = {
   text: string;
@@ -201,7 +149,6 @@ type HeaderListItemProps = {
 }
 
 const HeaderListItem: FunctionComponent<HeaderListItemProps> = ({ text, backgroundColor }) => {
-  // const backgroundColor = isActive ? 'yellow' : '#CCC';
   return (
     <View style={[styles.headerListItem, { backgroundColor }]}>
       <Text>
@@ -234,9 +181,7 @@ const NothingListItem: FunctionComponent<NothingListItemProps> = ({ text, date }
       </Text>
       <Pressable onPress={onPress}>
         <View style={styles.buttonAdd}>
-          <Text>
-            Add
-          </Text>
+          <Text>Add</Text>
         </View>
       </Pressable>
     </View>
@@ -280,7 +225,7 @@ const HomeScreen: NavigationFunctionComponent<Props> = ({ componentId }: Props) 
       <HeaderListItem
         key={`header-${index}`}
         text={`${date.toFormat('yyyy-MM-dd')}${isToday ? ' - Today' : ''}`}
-        backgroundColor={isToday ? COLOR_ORANGE : '#DDD'}
+        backgroundColor={isToday ? accent.HIGHLIGHT : '#DDD'}
       />
     );
     listItems.push(header);
@@ -305,20 +250,18 @@ const HomeScreen: NavigationFunctionComponent<Props> = ({ componentId }: Props) 
       ));
     } else {
       const taskListItems = tasksOfTheDay.map(x => (
-        <ListItem
-          key={`task-${x.id}`}
-          item={x}
-          backgroundColor={COLOR_TASK}
-          onPress={() => {}}
-        />
+        renderListItem({
+          key: `task-${x.id}`,
+          item: x,
+          backgroundColor: accent.TASK,
+        })
       ));
       const eventListItems = eventsOfTheDay.map(x => (
-        <ListItem
-          key={`event-${x.id}`}
-          item={x}
-          backgroundColor={COLOR_EVENTS}
-          onPress={() => {}}
-        />
+        renderListItem({
+          key: `event-${x.id}`,
+          item: x,
+          backgroundColor: accent.EVENT,
+        })
       ));
 
       listItems.push(...taskListItems, ...eventListItems, (
@@ -390,31 +333,31 @@ const HomeScreen: NavigationFunctionComponent<Props> = ({ componentId }: Props) 
           <BottomButton
             text="Tasks"
             isActive={taskActive}
-            activeBackgroundColor={COLOR_TASK}
+            activeBackgroundColor={accent.TASK}
             onPress={onTaskPress}
           />
           <BottomButton
             text="Events"
             isActive={eventActive}
-            activeBackgroundColor={COLOR_EVENTS}
+            activeBackgroundColor={accent.EVENT}
             onPress={onEventPress}
           />
           <BottomButton
             text="Priority"
             isActive={false}
-            activeBackgroundColor={COLOR_ORANGE}
+            activeBackgroundColor={accent.HIGHLIGHT}
             onPress={() => {}}
           />
           <BottomButton
             text="Tags"
             isActive={false}
-            activeBackgroundColor={COLOR_ORANGE}
+            activeBackgroundColor={accent.HIGHLIGHT}
             onPress={() => {}}
           />
           <BottomButton
             text="Profile"
             isActive={false}
-            activeBackgroundColor={COLOR_ORANGE}
+            activeBackgroundColor={accent.HIGHLIGHT}
             onPress={() => {}}
           />
         </View>
