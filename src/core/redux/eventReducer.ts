@@ -70,7 +70,7 @@ Event,
     await readWriteToFile((events) => {
       newEvents = events.filter(x => x.id !== event.id);
       newEvents.push(event);
-      return events;
+      return newEvents;
     });
     return newEvents;
   },
@@ -78,15 +78,15 @@ Event,
 
 export const removeEvent = createAsyncThunk<
 Event[],
-Event,
+Event['id'],
 {}
 >(
   `${NAMESPACE}/remove`,
-  async (event, _thunkApi) => {
+  async (eventId, _thunkApi) => {
     let newEvents: Event[] = [];
 
     await readWriteToFile((events) => {
-      newEvents = events.filter(x => x.id !== event.id);
+      newEvents = events.filter(x => x.id !== eventId);
       return newEvents;
     });
     return newEvents;

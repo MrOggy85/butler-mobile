@@ -11,7 +11,7 @@ import { addTask, removeTask, updateTask } from '../../core/redux/taskReducer';
 import { Task } from '../../core/redux/types';
 import screens from '../../core/navigation/screens';
 import { DateTime } from 'luxon';
-import { addEvent } from '../../core/redux/eventReducer';
+import { addEvent, removeEvent, updateEvent } from '../../core/redux/eventReducer';
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -136,6 +136,7 @@ function setTopBarRightButton({ addType, setAddType, hide }: Hej) {
 const AddScreen: NavigationFunctionComponent<Props> = ({ componentId, id, suggestedStartDate, suggestAddType }: Props) => {
   const dispatch = useDispatch();
   const tasks = useSelector(state => state.task.tasks);
+  const events = useSelector(state => state.event.events);
 
   const initStartDate = DateTime.fromJSDate(suggestedStartDate || new Date());
 
@@ -149,14 +150,16 @@ const AddScreen: NavigationFunctionComponent<Props> = ({ componentId, id, sugges
 
   useEffect(() => {
     if (id) {
-      const task = tasks.find(x => x.id === id);
-      if (!task) {
+      const item = addType === 'TASK'
+        ? tasks.find(x => x.id === id)
+        : events.find(x => x.id === id);
+      if (!item) {
         return;
       }
-      setTitle(task.title);
-      setDescription(task.description);
-      setStartDate(new Date(task.startDate));
-      setDueDate(new Date(task.endDate));
+      setTitle(item.title);
+      setDescription(item.description);
+      setStartDate(DateTime.fromISO(item.startDate).toJSDate());
+      setDueDate(DateTime.fromISO(item.endDate).toJSDate());
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -175,15 +178,16 @@ const AddScreen: NavigationFunctionComponent<Props> = ({ componentId, id, sugges
       dispatch(addTask({
         title,
         description,
-        startDate: startDate.getTime(),
-        endDate: dueDate.getTime(),
+        startDate: DateTime.fromJSDate(startDate).toISO(),
+        endDate: DateTime.fromJSDate(dueDate).toISO(),
+        completed: false,
       }));
     } else {
       dispatch(addEvent({
         title,
         description,
-        startDate: startDate.getTime(),
-        endDate: dueDate.getTime(),
+        startDate: DateTime.fromJSDate(startDate).toISO(),
+        endDate: DateTime.fromJSDate(dueDate).toISO(),
       }));
     }
 
@@ -194,14 +198,35 @@ const AddScreen: NavigationFunctionComponent<Props> = ({ componentId, id, sugges
     if (!id) {
       return;
     }
+    if (addType === 'TASK') {
+      const task = tasks.find(x => x.id === id);
+      if (!task) {
+        return;
+      }
 
-    dispatch(updateTask({
-      id,
-      title,
-      description,
-      startDate: startDate.getTime(),
-      endDate: dueDate.getTime(),
-    }));
+      dispatch(updateTask({
+        id,
+        title,
+        description,
+        startDate: DateTime.fromJSDate(startDate).toISO(),
+        endDate: DateTime.fromJSDate(dueDate).toISO(),
+        completed: task.completed,
+      }));
+    } else {
+      const event = events.find(x => x.id === id);
+      if (!event) {
+        return;
+      }
+
+      dispatch(updateEvent({
+        id,
+        title,
+        description,
+        startDate: DateTime.fromJSDate(startDate).toISO(),
+        endDate: DateTime.fromJSDate(dueDate).toISO(),
+      }));
+    }
+
     Navigation.dismissModal(componentId);
   };
 
@@ -210,13 +235,12 @@ const AddScreen: NavigationFunctionComponent<Props> = ({ componentId, id, sugges
       return;
     }
 
-    dispatch(removeTask({
-      id,
-      title,
-      description,
-      startDate: startDate.getTime(),
-      endDate: dueDate.getTime(),
-    }));
+    if (addType === 'TASK') {
+      dispatch(removeTask(id));
+    } else {
+      dispatch(removeEvent(id));
+    }
+
     Navigation.dismissModal(componentId);
   };
 

@@ -68,7 +68,7 @@ const TaskScreen: FunctionComponent<Props> = ({}: Props) => {
             {item.description}
           </Text>
           <Text style={styles.listItemDescription}>
-            {`start: ${DateTime.fromMillis(item.startDate).toFormat('yyyy-mm-dd')} end: ${DateTime.fromMillis(item.endDate).toFormat('yyyy-mm-dd')}`}
+            {`start: ${DateTime.fromISO(item.startDate).toFormat('yyyy-mm-dd')} end: ${DateTime.fromISO(item.endDate).toFormat('yyyy-mm-dd')}`}
           </Text>
         </View>
       </Pressable>

@@ -1,11 +1,13 @@
 import React, { ComponentProps, FunctionComponent, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, SafeAreaView, ScrollView, ViewStyle, RefreshControl, ActivityIndicator } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
+import type { Dispatch } from 'redux';
 import { NavigationComponentProps, NavigationFunctionComponent } from 'react-native-navigation';
 import Icon from 'react-native-vector-icons/Feather';
 import { DateTime } from 'luxon';
+import Color from 'color';
 import { showModal } from '../../core/navigation/showModal';
-import { loadTask } from '../../core/redux/taskReducer';
+import { loadTask, updateTask } from '../../core/redux/taskReducer';
 import type { Event, Task } from '../../core/redux/types';
 import { loadEvents } from '../../core/redux/eventReducer';
 import ListItem from '../../components/ListItem';
@@ -85,6 +87,13 @@ const styles = StyleSheet.create({
   activityIndicatorHide: {
     opacity: 0,
   },
+  listItemTaskCompletedText: {
+    textDecorationLine: 'line-through',
+    color: '#666',
+  },
+  listItemEventOldText: {
+    color: '#666',
+  },
 });
 
 type BottonButtonProps = {
@@ -113,13 +122,12 @@ const BottomButton: FunctionComponent<BottonButtonProps> = ({ text, isActive, ac
   );
 };
 
-type RenderListItemParams = {
-  key: string;
-  item: Task | Event;
-  backgroundColor: ViewStyle['backgroundColor'];
+type RenderTaskListItemParams = {
+  item: Task;
+  dispatch: Dispatch<any>;
 }
 
-function renderListItem({ key, item, backgroundColor }: RenderListItemParams) {
+function renderTaskListItem({ item, dispatch }: RenderTaskListItemParams) {
   const onEditPress = () => {
     showModal<AddScreenProps>({
       screen: 'ADD',
@@ -130,23 +138,69 @@ function renderListItem({ key, item, backgroundColor }: RenderListItemParams) {
     });
   };
   const onCompletePress = () => {
+    dispatch(updateTask({
+      ...item,
+      completed: !item.completed,
+    }));
+  };
+
+  return (
+    <ListItem
+      key={`task-${item.id}`}
+      title={item.title}
+      subtitle={item.description}
+      backgroundColor={item.completed ? Color(accent.TASK).lighten(0.2).hex() : accent.TASK}
+      options={[
+        {
+          iconName: 'edit',
+          iconColor: accent.INFO,
+          onPress: onEditPress,
+        },
+        {
+          iconName: 'check-square',
+          iconColor: accent.SUCCESS,
+          onPress: onCompletePress,
+        },
+      ]}
+      textStyle={item.completed ? styles.listItemTaskCompletedText : undefined}
+    />
+  );
+}
+
+type RenderEventListItemParams = {
+  item: Event;
+  date: DateTime;
+  dispatch: Dispatch<any>;
+}
+
+function renderEventListItem({ item, date, dispatch }: RenderEventListItemParams) {
+  const isOld = DateTime.fromISO(item.endDate).diffNow().milliseconds < 0;
+
+  const onEditPress = () => {
     showModal<AddScreenProps>({
       screen: 'ADD',
       title: '',
       passProps: {
         id: item.id,
+        suggestAddType: 'EVENT',
       },
     });
   };
 
   return (
     <ListItem
-      key={key}
+      key={`event-${item.id}-${date.day}`}
       title={item.title}
       subtitle={item.description}
-      backgroundColor={backgroundColor}
-      onEditPress={onEditPress}
-      onCompletePress={onCompletePress}
+      backgroundColor={isOld ? Color(accent.EVENT).lighten(0.4).hex() : accent.EVENT}
+      options={[
+        {
+          iconName: 'edit',
+          iconColor: accent.INFO,
+          onPress: onEditPress,
+        },
+      ]}
+      textStyle={isOld ? styles.listItemEventOldText : undefined}
     />
   );
 }
@@ -211,8 +265,8 @@ const HomeScreen: NavigationFunctionComponent<Props> = ({ componentId }: Props) 
   const dispatch = useDispatch();
   const tasks = useSelector(state => state.task.tasks);
   const events = useSelector(state => state.event.events);
-  const [taskActive, setTaskActive] = useState(false);
-  const [eventActive, setEventActive] = useState(false);
+  const [taskActive, setTaskActive] = useState(true);
+  const [eventActive, setEventActive] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [daysInView, setDaysInView] = useState(20);
   const [currentDayIndex, setCurrentDayIndex] = useState(0);
@@ -250,13 +304,16 @@ const HomeScreen: NavigationFunctionComponent<Props> = ({ componentId }: Props) 
     listItems.push(header);
 
     const tasksOfTheDay = taskActive ? tasks.filter(x => {
-      const taskDate = DateTime.fromMillis(x.startDate);
+      const taskDate = DateTime.fromISO(x.startDate);
       return date.hasSame(taskDate, 'day');
     }) : [];
 
     const eventsOfTheDay = eventActive ? events.filter(x => {
-      const eventDate = DateTime.fromMillis(x.startDate);
-      return date.hasSame(eventDate, 'day');
+      const eventStartDate = DateTime.fromISO(x.startDate);
+      const eventEndDate = DateTime.fromISO(x.endDate);
+      const startDateIsAfter = date.diff(eventStartDate).toMillis() > 0;
+      const endDateIsBefore = date.diff(eventEndDate).toMillis() < 0;
+      return startDateIsAfter && endDateIsBefore;
     }) : [];
 
     if (tasksOfTheDay.length === 0 && eventsOfTheDay.length === 0) {
@@ -269,17 +326,16 @@ const HomeScreen: NavigationFunctionComponent<Props> = ({ componentId }: Props) 
       ));
     } else {
       const taskListItems = tasksOfTheDay.map(x => (
-        renderListItem({
-          key: `task-${x.id}`,
+        renderTaskListItem({
           item: x,
-          backgroundColor: accent.TASK,
+          dispatch,
         })
       ));
       const eventListItems = eventsOfTheDay.map(x => (
-        renderListItem({
-          key: `event-${x.id}`,
+        renderEventListItem({
           item: x,
-          backgroundColor: accent.EVENT,
+          date,
+          dispatch,
         })
       ));
 

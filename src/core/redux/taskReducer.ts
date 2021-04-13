@@ -69,7 +69,7 @@ Task,
     await readWriteToFile((tasks) => {
       newTasks = tasks.filter(x => x.id !== task.id);
       newTasks.push(task);
-      return tasks;
+      return newTasks;
     });
     return newTasks;
   },
@@ -77,15 +77,15 @@ Task,
 
 export const removeTask = createAsyncThunk<
 Task[],
-Task,
+Task['id'],
 {}
 >(
   `${NAMESPACE}/remove`,
-  async (task, _thunkApi) => {
+  async (taskId, _thunkApi) => {
     let newTasks: Task[] = [];
 
     await readWriteToFile((tasks) => {
-      newTasks = tasks.filter(x => x.id !== task.id);
+      newTasks = tasks.filter(x => x.id !== taskId);
       return newTasks;
     });
     return newTasks;

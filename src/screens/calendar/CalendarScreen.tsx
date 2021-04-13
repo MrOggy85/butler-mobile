@@ -86,7 +86,7 @@ type DateCell = {
 
 function getEventsOfTheDay(date: DateTime, events: Event[]) {
   const eventsOfTheDay = events.filter(x => {
-    const eventDate = DateTime.fromMillis(x.startDate);
+    const eventDate = DateTime.fromISO(x.startDate);
     return date.hasSame(eventDate, 'day');
   });
   return eventsOfTheDay;
@@ -238,8 +238,8 @@ const CalendarScreen: FunctionComponent<Props> = ({}: Props) => {
                     <Text>{i + 1}</Text>
                     {events
                       .filter(x =>
-                        DateTime.fromMillis(x.startDate).day === zoomedDate.day &&
-                        DateTime.fromMillis(x.startDate).hour === i + 1)
+                        DateTime.fromISO(x.startDate).day === zoomedDate.day &&
+                        DateTime.fromISO(x.startDate).hour === i + 1)
                       .map(x => (
                         <View
                           key={x.id}

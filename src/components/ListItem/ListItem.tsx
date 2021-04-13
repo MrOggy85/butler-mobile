@@ -1,10 +1,11 @@
 import React, { ComponentProps, useState } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, TextStyle } from 'react-native';
 import { ViewStyle } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { accent } from '../../core/colors';
 
 type PressableStyle = ComponentProps<typeof Pressable>['style'];
+type IconProps = ComponentProps<typeof Icon>;
 
 const styles = StyleSheet.create({
   root: {
@@ -38,11 +39,14 @@ const pressedStyle: PressableStyle = ({ pressed }) => ({
 });
 
 type EditRowProps = {
-  onEditPress: () => void;
-  onCompletePress: () => void;
+  options: {
+    onPress: () => void;
+    iconName: IconProps['name'];
+    iconColor: IconProps['color'];
+  }[];
 }
 
-const EditRow = ({ onEditPress, onCompletePress }: EditRowProps) => {
+const EditRow = ({ options }: EditRowProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   if (!isOpen) {
@@ -68,36 +72,24 @@ const EditRow = ({ onEditPress, onCompletePress }: EditRowProps) => {
 
   return (
     <View style={styles.editRow}>
-      <Pressable
-        onPress={() => {
-          onEditPress();
-          setIsOpen(false);
-        }}
-        style={pressedStyle}
-      >
-        <View style={styles.buttonAdd}>
-          <Icon
-            name="edit"
-            color={accent.INFO}
-            size={24}
-          />
-        </View>
-      </Pressable>
-      <Pressable
-        onPress={() => {
-          onCompletePress();
-          setIsOpen(false);
-        }}
-        style={pressedStyle}
-      >
-        <View style={styles.buttonAdd}>
-          <Icon
-            name="check-square"
-            color={accent.SUCCESS}
-            size={24}
-          />
-        </View>
-      </Pressable>
+      {options.map(x => (
+        <Pressable
+          key={x.iconName}
+          onPress={() => {
+            x.onPress();
+            setIsOpen(false);
+          }}
+          style={pressedStyle}
+        >
+          <View style={styles.buttonAdd}>
+            <Icon
+              name={x.iconName}
+              color={x.iconColor}
+              size={24}
+            />
+          </View>
+        </Pressable>
+      ))}
       <Pressable
         onPress={() => {
           setIsOpen(false);
@@ -120,20 +112,19 @@ type Props = {
   title: string;
   subtitle: string;
   backgroundColor: ViewStyle['backgroundColor'];
-  onEditPress: () => void;
-  onCompletePress: () => void;
+  options: EditRowProps['options'];
+  textStyle?: TextStyle;
 }
 
-const ListItem = ({ title, subtitle, backgroundColor, onEditPress, onCompletePress }: Props) => {
+const ListItem = ({ title, subtitle, backgroundColor, options, textStyle }: Props) => {
   return (
     <View style={[styles.root, { backgroundColor }]}>
       <View>
-        <Text style={styles.titleText}>{title}</Text>
-        <Text style={styles.subtitleText}>{subtitle}</Text>
+        <Text style={[styles.titleText, textStyle]}>{title}</Text>
+        <Text style={[styles.subtitleText, textStyle]}>{subtitle}</Text>
       </View>
       <EditRow
-        onEditPress={onEditPress}
-        onCompletePress={onCompletePress}
+        options={options}
       />
     </View>
   );
