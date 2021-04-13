@@ -2,6 +2,7 @@ import React, { ComponentProps, FunctionComponent, useEffect, useState } from 'r
 import { View, Text, StyleSheet, Pressable, SafeAreaView, ScrollView, ViewStyle, RefreshControl, ActivityIndicator } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { NavigationComponentProps, NavigationFunctionComponent } from 'react-native-navigation';
+import Icon from 'react-native-vector-icons/Feather';
 import { DateTime } from 'luxon';
 import { showModal } from '../../core/navigation/showModal';
 import { loadTask } from '../../core/redux/taskReducer';
@@ -10,6 +11,8 @@ import { loadEvents } from '../../core/redux/eventReducer';
 import ListItem from '../../components/ListItem';
 import AddScreen from '../add/AddModal';
 import { accent } from '../../core/colors';
+
+type PressableStyle = ComponentProps<typeof Pressable>['style'];
 
 type OwnProps = {};
 type Props = OwnProps & NavigationComponentProps;
@@ -64,7 +67,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     width: 50,
-    backgroundColor: 'skyblue',
   },
   loadMoreDateWrapper: {
     position: 'absolute',
@@ -94,9 +96,15 @@ type BottonButtonProps = {
 
 const BottomButton: FunctionComponent<BottonButtonProps> = ({ text, isActive, activeBackgroundColor, onPress }) => {
   const backgroundColor = isActive ? activeBackgroundColor : '#CCC';
+  const pressedStyle: PressableStyle = ({ pressed }) => ({
+    backgroundColor: pressed ? accent.DISABLED : backgroundColor,
+  });
   return (
-    <Pressable onPress={onPress}>
-      <View style={[styles.bottomButton, { backgroundColor }]}>
+    <Pressable
+      onPress={onPress}
+      style={pressedStyle}
+    >
+      <View style={styles.bottomButton}>
         <Text>
           {text}
         </Text>
@@ -174,14 +182,25 @@ const NothingListItem: FunctionComponent<NothingListItemProps> = ({ text, date }
     });
   };
 
+  const pressedStyle: PressableStyle = ({ pressed }) => ({
+    backgroundColor: pressed ? accent.DISABLED : 'transparent',
+  });
+
   return (
     <View style={styles.nothingListItem}>
       <Text style={styles.nothingListItemText}>
         {text}
       </Text>
-      <Pressable onPress={onPress}>
+      <Pressable
+        onPress={onPress}
+        style={pressedStyle}
+      >
         <View style={styles.buttonAdd}>
-          <Text>Add</Text>
+          <Icon
+            name="plus-square"
+            color={accent.INFO}
+            size={24}
+          />
         </View>
       </Pressable>
     </View>

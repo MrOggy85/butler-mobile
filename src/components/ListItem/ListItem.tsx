@@ -1,6 +1,10 @@
-import React, { useState } from 'react';
+import React, { ComponentProps, useState } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { ViewStyle } from 'react-native';
+import Icon from 'react-native-vector-icons/Feather';
+import { accent } from '../../core/colors';
+
+type PressableStyle = ComponentProps<typeof Pressable>['style'];
 
 const styles = StyleSheet.create({
   root: {
@@ -14,14 +18,12 @@ const styles = StyleSheet.create({
   editRow: {
     height: '100%',
     flexDirection: 'row',
-    backgroundColor: 'yellow',
   },
   buttonAdd: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     width: 50,
-    backgroundColor: 'skyblue',
   },
   titleText: {
     fontSize: 18,
@@ -29,6 +31,10 @@ const styles = StyleSheet.create({
   subtitleText: {
     color: '#222',
   },
+});
+
+const pressedStyle: PressableStyle = ({ pressed }) => ({
+  backgroundColor: pressed ? accent.DISABLED : 'rgba(255, 255, 255, 0.3)',
 });
 
 type EditRowProps = {
@@ -45,9 +51,16 @@ const EditRow = ({ onEditPress, onCompletePress }: EditRowProps) => {
         onPress={() => {
           setIsOpen(true);
         }}
+        style={({ pressed }) => ({
+          backgroundColor: pressed ? 'rgba(255, 255, 255, 0.5)' : 'transparent',
+        })}
       >
         <View style={styles.buttonAdd}>
-          <Text>Menu</Text>
+          <Icon
+            name="chevron-left"
+            color="#222"
+            size={24}
+          />
         </View>
       </Pressable>
     );
@@ -55,31 +68,48 @@ const EditRow = ({ onEditPress, onCompletePress }: EditRowProps) => {
 
   return (
     <View style={styles.editRow}>
-      <Pressable onPress={() => {
-        onEditPress();
-        setIsOpen(false);
-      }}
+      <Pressable
+        onPress={() => {
+          onEditPress();
+          setIsOpen(false);
+        }}
+        style={pressedStyle}
       >
         <View style={styles.buttonAdd}>
-          <Text>Edit</Text>
+          <Icon
+            name="edit"
+            color={accent.INFO}
+            size={24}
+          />
         </View>
       </Pressable>
-      <Pressable onPress={() => {
-        onCompletePress();
-        setIsOpen(false);
-      }}
+      <Pressable
+        onPress={() => {
+          onCompletePress();
+          setIsOpen(false);
+        }}
+        style={pressedStyle}
       >
         <View style={styles.buttonAdd}>
-          <Text>Complete</Text>
+          <Icon
+            name="check-square"
+            color={accent.SUCCESS}
+            size={24}
+          />
         </View>
       </Pressable>
       <Pressable
         onPress={() => {
           setIsOpen(false);
         }}
+        style={pressedStyle}
       >
         <View style={styles.buttonAdd}>
-          <Text>Close</Text>
+          <Icon
+            name="chevron-right"
+            color="#222"
+            size={24}
+          />
         </View>
       </Pressable>
     </View>
