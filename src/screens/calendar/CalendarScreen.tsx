@@ -86,8 +86,16 @@ type DateCell = {
 
 function getEventsOfTheDay(date: DateTime, events: Event[]) {
   const eventsOfTheDay = events.filter(x => {
-    const eventDate = DateTime.fromISO(x.startDate);
-    return date.hasSame(eventDate, 'day');
+    const startDate = DateTime.fromISO(x.startDate);
+    const endDate = DateTime.fromISO(x.endDate);
+
+    const startDateIsAfter = startDate.day <= date.day &&
+      startDate.month === date.month &&
+      startDate.year === date.year;
+    const endDateIsBefore = endDate.day >= date.day &&
+      endDate.month === date.month &&
+      endDate.year === date.year;
+    return startDateIsAfter && endDateIsBefore;
   });
   return eventsOfTheDay;
 }
@@ -98,7 +106,7 @@ const CalendarScreen: FunctionComponent<Props> = ({}: Props) => {
   const [zoomedDate, setZoomedDate] = useState<DateTime | undefined>(undefined);
 
   const now = DateTime.now();
-  const firstDayOfCurrentMonth = DateTime.fromObject({ year: now.year, month: now.month, day: 1 });
+  const firstDayOfCurrentMonth = DateTime.fromObject({ year: now.year, month: now.month, day: 1, hour: 0, minute: 0, millisecond: 0 });
   const lastDayOfPreviousMonth = firstDayOfCurrentMonth.minus({ day: 1 }).day;
 
   let currentDate = firstDayOfCurrentMonth.plus({ day: 0 });
