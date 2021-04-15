@@ -48,17 +48,17 @@ jobs:
           password: ${{ secrets.EMAIL_PASSWORD }}
           subject: build ${{ github.repository }} has ${{ job.status }}
           body: |
-            ${{ github.workflow }} of ${{ github.repository }} has ${{ job.status }}
+            Status: ${{ job.status }}
             
-            Yarn Install: 
-            - outputs: ${{toJSON(steps.install.outputs)}}
-            - conclusion: ${{steps.install.conclusion}}
-            - outcome: ${{steps.install.outcome}}
+            Link <a href="https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}">To Build</a>
+          
+            Repo: ${{ github.repository }}
+            Worflow: ${{ github.workflow }}
+            Branch: ${{ github.ref }}
+            Event: ${{ github.event_name }}
             
-            Yarn Lint: 
-            - outputs: ${{toJSON(steps.lint.outputs)}}
-            - conclusion: ${{steps.lint.conclusion}}
-            - outcome: ${{steps.lint.outcome}}
+            * Yarn Install: ${{steps.install.outcome}}
+            * Yarn Lint: ${{steps.lint.outcome}}
             
           to: github@ringuren.com
           from: Github Action
