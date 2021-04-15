@@ -1,7 +1,7 @@
 import React, { ComponentProps, FunctionComponent, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, SafeAreaView, ScrollView, ViewStyle, RefreshControl, ActivityIndicator } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
-import type { Dispatch } from 'redux';
+import { useSelector } from 'react-redux';
+// import type { Dispatch } from 'redux';
 import { NavigationComponentProps, NavigationFunctionComponent } from 'react-native-navigation';
 import Icon from 'react-native-vector-icons/Feather';
 import { DateTime } from 'luxon';
@@ -13,6 +13,9 @@ import { loadEvents } from '../../core/redux/eventReducer';
 import ListItem from '../../components/ListItem';
 import AddScreen from '../add/AddModal';
 import { accent } from '../../core/colors';
+import useDispatch from '../../core/redux/useDispatch';
+
+type Dispatch = ReturnType<typeof useDispatch>;
 
 type PressableStyle = ComponentProps<typeof Pressable>['style'];
 
@@ -124,7 +127,7 @@ const BottomButton: FunctionComponent<BottonButtonProps> = ({ text, isActive, ac
 
 type RenderTaskListItemParams = {
   item: Task;
-  dispatch: Dispatch<any>;
+  dispatch: Dispatch;
 }
 
 function renderTaskListItem({ item, dispatch }: RenderTaskListItemParams) {
@@ -170,7 +173,7 @@ function renderTaskListItem({ item, dispatch }: RenderTaskListItemParams) {
 type RenderEventListItemParams = {
   item: Event;
   date: DateTime;
-  dispatch: Dispatch<any>;
+  dispatch: Dispatch;
 }
 
 function renderEventListItem({ item, date, dispatch }: RenderEventListItemParams) {

@@ -242,7 +242,10 @@ const CalendarScreen: FunctionComponent<Props> = ({}: Props) => {
             <ScrollView>
               <View style={styles.zoomedHourWrapper}>
                 {hours.map((x, i) => (
-                  <View style={styles.zoomedHour} key={i}>
+                  <View
+                    key={i}
+                    style={styles.zoomedHour}
+                  >
                     <Text>{i + 1}</Text>
                     {events
                       .filter(x =>
@@ -255,19 +258,20 @@ const CalendarScreen: FunctionComponent<Props> = ({}: Props) => {
                         >
                           <Text>{x.title}</Text>
                         </View>
-                      ))
-                    }
-                    <Pressable onPress={() => {
-                      const suggestedStartDate = zoomedDate.set({ hour: i + 1}).toJSDate();
-                      showModal<AddScreenProps>({
-                        screen: 'ADD',
-                        title: 'Add',
-                        passProps: {
-                          suggestedStartDate,
-                          suggestAddType: 'EVENT',
-                        },
-                      });
-                    }}>
+                      ))}
+                    <Pressable
+                      onPress={() => {
+                        const suggestedStartDate = zoomedDate.set({ hour: i + 1}).toJSDate();
+                        showModal<AddScreenProps>({
+                          screen: 'ADD',
+                          title: 'Add',
+                          passProps: {
+                            suggestedStartDate,
+                            suggestAddType: 'EVENT',
+                          },
+                        });
+                      }}
+                    >
                       <View style={styles.buttonAdd}>
                         <Text>
                           Add
@@ -281,7 +285,6 @@ const CalendarScreen: FunctionComponent<Props> = ({}: Props) => {
           </View>
         </Pressable>
       )}
-
     </SafeAreaView>
   );
 };

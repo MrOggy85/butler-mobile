@@ -183,7 +183,7 @@ const AddScreen: NavigationFunctionComponent<Props> = ({ componentId, id, sugges
   }, []);
 
   useEffect(() => {
-    const addEdit = id ? 'Edit' : 'Add'
+    const addEdit = id ? 'Edit' : 'Add';
     setTopBarTitle(addType === 'TASK' ? `${addEdit} Task` : `${addEdit} Event`);
     const subscription = setTopBarRightButton({ addType, setAddType, hide: !!id });
     return () => {

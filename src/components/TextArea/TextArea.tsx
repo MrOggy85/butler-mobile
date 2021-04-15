@@ -39,7 +39,6 @@ const TextArea = ({ label, text, setText}: Props) => {
         value={text}
         style={styles.textInput}
         multiline
-
         onChangeText={onChangeText}
         autoCapitalize="none"
         autoCorrect={false}

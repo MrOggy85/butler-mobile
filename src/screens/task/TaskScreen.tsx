@@ -86,6 +86,6 @@ const TaskScreen: FunctionComponent<Props> = ({}: Props) => {
       />
     </SafeAreaView>
   );
-}
+};
 
 export default TaskScreen;
