@@ -10,8 +10,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addTask, removeTask, updateTask } from '../../core/redux/taskReducer';
 import { Task } from '../../core/redux/types';
 import screens from '../../core/navigation/screens';
-import { DateTime } from 'luxon';
+import { DateTime, Interval } from 'luxon';
 import { addEvent, removeEvent, updateEvent } from '../../core/redux/eventReducer';
+import DurationInput from './DurationInput';
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -31,9 +32,16 @@ const styles = StyleSheet.create({
     height: 50,
     padding: 0,
     margin: 0,
+    backgroundColor: '#FFF',
   },
   dateLabel: {
     fontWeight: 'bold',
+    marginTop: 10,
+    marginBottom: 7,
+  },
+  datePickerResetText: {
+    width: 50,
+    textAlign: 'center',
   },
   visibleWrapper: {
     flexDirection: 'row',
@@ -53,7 +61,13 @@ type DateInputProps = {
   setIsChecked: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const DateInput: FunctionComponent<DateInputProps> = ({ label, date, isChecked, setIsChecked, setDate }) => {
+const DateInput: FunctionComponent<DateInputProps> = ({
+  label,
+  date,
+  isChecked,
+  setIsChecked,
+  setDate,
+}) => {
   return (
     <View>
       <Text style={styles.dateLabel}>
@@ -70,15 +84,19 @@ const DateInput: FunctionComponent<DateInputProps> = ({ label, date, isChecked, 
           style={styles.datePicker}
           date={date}
           onDateChange={setDate}
-          locale="en-GB"
+          is24hourSource="locale"
+          locale="en-SE"
         />
         <Pressable
           onPress={() => {
             setDate(new Date());
           }}
         >
-          <Text>
-            Reset
+          <Text
+            numberOfLines={2}
+            style={styles.datePickerResetText}
+          >
+            Reset to Now
           </Text>
         </Pressable>
       </View>
@@ -244,7 +262,16 @@ const AddScreen: NavigationFunctionComponent<Props> = ({ componentId, id, sugges
     Navigation.dismissModal(componentId);
   };
 
-  const duration = DateTime.fromJSDate(dueDate).diff(DateTime.fromJSDate(startDate)).toFormat(`d 'days' h 'h' m 'min'`);
+  const interval = Interval.fromDateTimes(startDate, dueDate);
+  const minutes = interval.count('minutes') - 1;
+  const hourDiff = Math.floor(minutes / 60);
+  const minuteDiff = minutes % 60;
+
+  useEffect(() => {
+    if (startDate.getTime() > dueDate.getTime()) {
+      setDueDate(startDate);
+    }
+  }, [startDate, dueDate]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -267,6 +294,20 @@ const AddScreen: NavigationFunctionComponent<Props> = ({ componentId, id, sugges
           isChecked={hasStartDate}
           setIsChecked={setHasStartDate}
         />
+        <DurationInput
+          hour={hourDiff}
+          minute={minuteDiff}
+          onHourScrollEnd={(hour) => {
+            const dueDateMinute = DateTime.fromJSDate(dueDate).minute;
+            const newDueDate = DateTime.fromJSDate(startDate).plus({ hours: hour }).set({ minute: dueDateMinute });
+            setDueDate(newDueDate.toJSDate());
+          }}
+          onMinuteScrollEnd={(minute) => {
+            const dueDateHour = DateTime.fromJSDate(dueDate).hour;
+            const newDueDate = DateTime.fromJSDate(startDate).plus({ minutes: minute }).set({ hour: dueDateHour });
+            setDueDate(newDueDate.toJSDate());
+          }}
+        />
         <View style={styles.visibleWrapper}>
           <CheckBox
             boxType="square"
@@ -274,11 +315,6 @@ const AddScreen: NavigationFunctionComponent<Props> = ({ componentId, id, sugges
           />
           <Text style={styles.visibleLabel}>
             Visible before Start Date
-          </Text>
-        </View>
-        <View>
-          <Text>
-            {`Duration: ${duration}`}
           </Text>
         </View>
         <DateInput
