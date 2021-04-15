@@ -35,7 +35,9 @@ jobs:
       - name: yarn install
         id: install
         run: yarn install
-      - run: yarn lint
+      - name: yarn lint
+        id: lint
+        run: yarn lint
       - name: The job has failed
         if: ${{ failure() }}
         uses: MrOggy85/action-send-mail@v2
@@ -46,11 +48,17 @@ jobs:
           password: ${{ secrets.EMAIL_PASSWORD }}
           subject: build ${{ github.repository }} has ${{ job.status }}
           body: |
-            ${{ github.workflow }} of ${{ github.repository }} has ${{ job.status }} ${{toJSON(job)}}
+            ${{ github.workflow }} of ${{ github.repository }} has ${{ job.status }}
+            
             Yarn Install: 
-            - outputs: ${{steps.install.outputs}}
+            - outputs: ${{toJSON(steps.install.outputs)}}
             - conclusion: ${{steps.install.conclusion}}
             - outcome: ${{steps.install.outcome}}
+            
+            Yarn Lint: 
+            - outputs: ${{toJSON(steps.lint.outputs)}}
+            - conclusion: ${{steps.lint.conclusion}}
+            - outcome: ${{steps.lint.outcome}}
             
           to: github@ringuren.com
           from: Github Action
