@@ -26,6 +26,8 @@ Navigation.events().registerAppLaunchedListener(() => {
                  topBar: {
                    title: {
                      text: 'Agenda',
+                     alignment: 'center',
+                     fontSize: 20,
                    },
                  },
                },

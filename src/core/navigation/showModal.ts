@@ -11,11 +11,11 @@ type Props<T> = {
 
 const BACK_BUTTON_ID = 'MODAL_BACK_BUTTON_ID';
 
-Navigation.events().registerNavigationButtonPressedListener((event) => {
+Navigation.events().registerNavigationButtonPressedListener(async (event) => {
   if (event.buttonId !== BACK_BUTTON_ID) {
     return;
   }
-  Navigation.dismissModal(event.componentId);
+  await Navigation.dismissModal(event.componentId);
 });
 
 export function showModal<T>({ screen, title, passProps }: Props<T>): void {
