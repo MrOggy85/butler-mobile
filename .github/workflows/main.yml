@@ -32,7 +32,9 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '12'
-      - run: yarn install
+      - name: yarn install
+        id: yarn-install
+        run: yarn install
       - run: yarn lint
       - name: The job has failed
         if: ${{ failure() }}
@@ -42,11 +44,7 @@ jobs:
           server_port: 465
           username: ${{ secrets.EMAIL_USERNAME }}
           password: ${{ secrets.EMAIL_PASSWORD }}
-          # email subject
-          subject: ${{ github.job }} job of ${{ github.repository }} has ${{ job.status }}
-          # email body as text
-          body: ${{ github.job }} job in worflow ${{ github.workflow }} of ${{ github.repository }} has ${{ job.status }}
-          # comma-separated string, send email to
+          subject: build ${{ github.repository }} has ${{ job.status }}
+          body: ${{ github.workflow }} of ${{ github.repository }} has ${{ job.status }} ${{toJSON(job)}}
           to: github@ringuren.com
-          # from email name
-          from: John Doe
+          from: Github Action
