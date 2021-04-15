@@ -36,6 +36,8 @@ export function showModal<T>({ screen, title, passProps }: Props<T>): void {
                   {
                     id: BACK_BUTTON_ID,
                     text: 'Back',
+                    icon: require('./arrow-left/arrow-left.png'),
+                    color: '#000',
                   },
                 ],
                 rightButtons: [
