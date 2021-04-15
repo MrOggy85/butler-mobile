@@ -54,12 +54,10 @@ jobs:
             
             Link to [Build](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})
           
-            | Key | Value |
-            | --- | --- |
-            | Repo | ${{ github.repository }} |
-            | Worflow | ${{ github.workflow }} |
-            | Branch | ${{ github.ref }} |
-            | Event | ${{ github.event_name }} |
+            * Repo: *${{ github.repository }}*
+            * Worflow: *${{ github.workflow }}*
+            * Branch: *${{ github.ref }}*
+            * Event: *${{ github.event_name }}*
             
             * Yarn Install: **${{steps.install.outcome}}**
             * Yarn Lint: **${{steps.lint.outcome}}**
