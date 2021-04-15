@@ -51,16 +51,16 @@ jobs:
           convert_markdown: true
           body: |
             # Status: ${{ job.status }}
-            
             Link to [Build](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})
-          
+            
+            ## Steps
+            * Yarn Install: **${{steps.install.outcome}}**
+            * Yarn Lint: **${{steps.lint.outcome}}**
+    
+            ## Info
             * Repo: *${{ github.repository }}*
             * Worflow: *${{ github.workflow }}*
             * Branch: *${{ github.ref }}*
             * Event: *${{ github.event_name }}*
-            
-            * Yarn Install: **${{steps.install.outcome}}**
-            * Yarn Lint: **${{steps.lint.outcome}}**
-            
           to: github@ringuren.com
           from: Github Action
